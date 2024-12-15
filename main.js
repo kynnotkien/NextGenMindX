@@ -63,6 +63,15 @@ function resetAddForm() {
     imageUpload.value = ''
 }
 
+// Reset updated information
+function resetUpdateForm() {
+    updateName.value = ''
+    updateName.value = ''
+    updatePrice.value = ''
+    updateImageUpload.value = ''
+    updateForm.style.display = 'none'
+}
+
 // Hiển thị sản phẩm lên màn hình
 function displayApartment() {
     apartmentList.innerHTML = ""
@@ -86,3 +95,61 @@ function displayApartment() {
 
 // Kích hoạt chạy hàm hiển thị sản phẩm lên màn hình
 displayApartment()
+
+function deleteApartment(id) {
+    const apartmentRef = database.ref('apartments/' + id)
+    apartmentRef.remove().then(() => {
+        alert('đã xóa căn hộ')
+
+        displayApartment()
+    })
+}
+
+// Edit 
+function editApartment(id) {
+    const apartmentRef = database.ref('apartments/' + id)
+    apartmentRef.once('value', (snapshot) => {
+        const apartment = snapshot.val()
+
+        updateName.value = apartment.name
+        updatePrice.value = apartment.price
+        updateDescription.value = apartment.description
+        
+        updateForm.style.display = 'block'
+        updateForm.onsubmit = (e) => {
+            e.preventDefault()
+            const updatedName = updateName.value
+            const updatedPrice = updatePrice.value
+            const updatedDescription = updateDescription.value
+            const updatedImage = updateImageUpload.files[0]
+
+            if (updatedImage) {
+                const reader = new FileReader()
+                reader.onloadend = () => {
+                    const updatedImageData = reader.result
+                    apartmentRef.update({
+                        name: updatedName,
+                        price: updatedPrice,
+                        description: updatedDescription,
+                        image: updatedImageData
+                    }).then(() => {
+                        alert("edit successfully" + apartment.name)
+                        resetUpdateForm() 
+                        displayApartment()
+                    })
+                }
+                reader.readerAsDataURL(updatedImage)
+            } else {
+                apartmentRef.update({
+                    name: updatedName,
+                    price: updatedPrice,
+                    description: updatedDescription
+                }).then(() => {
+                    alert('stoopid')
+                    resetUpdateForm()
+                    displayApartment()
+                })
+            }
+        }
+    })
+}
